@@ -1,6 +1,24 @@
 // Content script for JB Buddy Price Finder extension
 (function() {
     'use strict';
+    
+    // Clean up any existing scroll handlers from previous runs
+    const existingPopups = document.querySelectorAll('.jb-buddy-popup');
+    existingPopups.forEach(popup => {
+        if (popup._scrollHandler) {
+            window.removeEventListener('scroll', popup._scrollHandler);
+        }
+        if (popup._resizeHandler) {
+            window.removeEventListener('resize', popup._resizeHandler);
+        }
+        if (popup._animationFrame) {
+            cancelAnimationFrame(popup._animationFrame);
+        }
+        if (popup._repositionTimeout) {
+            clearTimeout(popup._repositionTimeout);
+        }
+        popup.remove();
+    });
 
     // Function to extract model number from the element
     function extractModelNumber(element) {
@@ -156,29 +174,19 @@
                 priceTextElement = priceElement;
             }
             
-            // Position the popup relative to the price element
-            const priceTextRect = priceTextElement.getBoundingClientRect();
-            const priceRect = priceElement.getBoundingClientRect();
+            // Keep popup in document body, not as child of price element
+            document.body.appendChild(popup);
             
-            // Calculate position relative to the price element - center with the entire price box
-            const relativeTop = priceRect.height / 2; // Center with the entire price box
-            const relativeLeft = priceRect.width + 10; // 10px gap from right edge
+            // Store the price element reference on the popup for the scroll handler
+            popup._priceElement = priceElement;
             
+            // Set initial styles but don't position yet - let scroll handler do it
             popup.style.position = 'absolute';
-            popup.style.top = relativeTop + 'px';
-            popup.style.left = relativeLeft + 'px';
             popup.style.transform = 'translateY(-50%)';
+            popup.style.opacity = '0';
+            popup.style.visibility = 'hidden';
             
-            // Make the price element the positioning parent
-            priceElement.style.position = 'relative';
-            priceElement.appendChild(popup);
-            
-            console.log('Positioning popup relative to price element:', {
-                priceTextRect: priceTextRect,
-                priceRect: priceRect,
-                relativeTop: relativeTop,
-                relativeLeft: relativeLeft
-            });
+            console.log('Popup created and ready for positioning by scroll handler');
         } else {
             // Fallback to above model element
             popup.style.top = (rect.top + scrollTop - 100) + 'px';
@@ -210,6 +218,118 @@
                 // Show popup initially and keep it visible
                 popup.style.opacity = '1';
                 popup.style.visibility = 'visible';
+                
+                // Clean up any existing scroll handlers first
+                if (popup._scrollHandler) {
+                    window.removeEventListener('scroll', popup._scrollHandler);
+                }
+                
+                // Only add scroll listener if we have a price element (not fallback to model element)
+                if (popup._priceElement) {
+                    // Add scroll listener to hide popup when price box becomes sticky
+                    let lastScrollTop = 0;
+                    const handleScroll = () => {
+                        const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                        const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+                        
+                        // Use the stored price element reference first (for initial positioning)
+                        let currentPriceElement = popup._priceElement;
+                        
+                        // If the stored element is no longer in the DOM, try to find the current one
+                        if (!currentPriceElement || !document.contains(currentPriceElement)) {
+                            currentPriceElement = document.querySelector('#pdp-price-tag-wrapper');
+                        }
+                        
+                        // Only proceed if we have a price element
+                        if (!currentPriceElement || !document.contains(currentPriceElement)) {
+                            popup.style.opacity = '0';
+                            popup.style.visibility = 'hidden';
+                            return;
+                        }
+                        
+                        const priceRect = currentPriceElement.getBoundingClientRect();
+                        
+                        // Check if the price element is in its original position (not sticky)
+                        const isOriginalPosition = priceRect.top > 0 && !currentPriceElement.classList.contains('_1vzft5e6');
+                        const hasStickyVariant = currentPriceElement.querySelector('.PriceTag_card_variant_small__1eb7mu92');
+                        
+                        console.log('Scroll detection:', {
+                            priceRectTop: priceRect.top,
+                            hasStickyClass: currentPriceElement.classList.contains('_1vzft5e6'),
+                            hasStickyVariant: !!hasStickyVariant,
+                            isOriginalPosition: isOriginalPosition,
+                            shouldShow: isOriginalPosition && !hasStickyVariant
+                        });
+                        
+                        if (isOriginalPosition && !hasStickyVariant) {
+                            // Price box is in original position, show and reposition popup
+                            const absoluteTop = priceRect.top + currentScrollTop + (priceRect.height / 2);
+                            const absoluteLeft = priceRect.right + scrollLeft + 10;
+                            
+                            popup.style.top = absoluteTop + 'px';
+                            popup.style.left = absoluteLeft + 'px';
+                            popup.style.opacity = '1';
+                            popup.style.visibility = 'visible';
+                            
+                            // Update the stored reference
+                            popup._priceElement = currentPriceElement;
+                            
+                            console.log('Showing and repositioning popup');
+                        } else {
+                            // Price box has become sticky, hide popup
+                            popup.style.opacity = '0';
+                            popup.style.visibility = 'hidden';
+                            console.log('Hiding popup');
+                        }
+                        
+                        lastScrollTop = currentScrollTop;
+                    };
+                    
+                    // Add scroll listener
+                    window.addEventListener('scroll', handleScroll, { passive: true });
+                    
+                    // Add resize listener to reposition popup when window is resized
+                    const handleResize = () => {
+                        handleScroll();
+                    };
+                    window.addEventListener('resize', handleResize, { passive: true });
+                    
+                    // Store the handlers for cleanup
+                    popup._scrollHandler = handleScroll;
+                    popup._resizeHandler = handleResize;
+                    
+                    // Trigger the scroll handler with a small delay to ensure page is settled
+                    setTimeout(() => {
+                        handleScroll();
+                    }, 2000);
+                    
+                    // Track the last known position of the price element
+                    let lastPriceRect = null;
+                    
+                    // Function to check if price element has moved and reposition if needed
+                    const checkAndReposition = () => {
+                        if (!popup._priceElement || !document.contains(popup._priceElement)) {
+                            return;
+                        }
+                        
+                        const currentRect = popup._priceElement.getBoundingClientRect();
+                        
+                        // Check if the position has changed significantly (more than 5px)
+                        if (!lastPriceRect || 
+                            Math.abs(currentRect.top - lastPriceRect.top) > 5 ||
+                            Math.abs(currentRect.left - lastPriceRect.left) > 5) {
+                            
+                            lastPriceRect = currentRect;
+                            handleScroll();
+                        }
+                        
+                        // Continue checking
+                        popup._animationFrame = requestAnimationFrame(checkAndReposition);
+                    };
+                    
+                    // Start the position checking loop
+                    popup._animationFrame = requestAnimationFrame(checkAndReposition);
+                }
             }
         }
     }

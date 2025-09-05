@@ -38,21 +38,21 @@
     font-weight: 500;
 }
 
-/* Speech bubble arrow pointing down */
+/* Speech bubble arrow pointing left (towards price) */
 .jb-buddy-popup-arrow {
     position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 50%;
+    left: -8px;
+    transform: translateY(-50%);
     width: 0;
     height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-top: 8px solid white;
+    border-top: 8px solid transparent;
+    border-bottom: 8px solid transparent;
+    border-right: 8px solid white;
 }
 
 .jb-buddy-popup-content:hover .jb-buddy-popup-arrow {
-    border-top-color: #f8f9fa;
+    border-right-color: #f8f9fa;
 }
 
 /* Animation for popup appearance */
