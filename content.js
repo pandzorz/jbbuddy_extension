@@ -5,7 +5,7 @@
     // Function to extract model number from the element
     function extractModelNumber(element) {
         const text = element.textContent || element.innerText;
-        const match = text.match(/MODEL:\s*([A-Z0-9]+)/i);
+        const match = text.match(/MODEL:\s*([A-Z0-9\/]+)/i);
         return match ? match[1] : null;
     }
 
