@@ -38,7 +38,7 @@ When viewing a product like the Samsung 65" S90F OLED TV (model: QA65S90FAEXXY),
 2. Show a popup above the model element
 3. When clicked, open: `https://www.jbbuddy.com/?q=QA65S90FAEXXY`
 
-![Example of the extension in action](example.png)
+<img src="example.png" alt="Example of the extension in action" width="400">
 
 *The white speech bubble "Search on JB Buddy" appears above the product title, allowing users to quickly search for better prices on JB Buddy.*
 
