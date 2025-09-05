@@ -110,14 +110,12 @@
         for (const selector of priceSelectors) {
             priceElement = document.querySelector(selector);
             if (priceElement) {
-                console.log('Found price element with selector:', selector, priceElement);
                 break;
             }
         }
         
         // If no price element found, search for elements containing dollar signs
         if (!priceElement) {
-            console.log('No price element found with selectors, searching for dollar signs...');
             const allElements = document.querySelectorAll('*');
             for (const element of allElements) {
                 const text = element.textContent || element.innerText;
@@ -130,7 +128,6 @@
                         const computedStyle = window.getComputedStyle(element);
                         if (computedStyle.display !== 'none' && computedStyle.visibility !== 'hidden') {
                             priceElement = element;
-                            console.log('Found price element by dollar sign search:', element, text.trim());
                             break;
                         }
                     }
@@ -153,17 +150,14 @@
                                  priceElement.querySelector('.PriceTag_actual__1eb7mu91a') ||
                                  priceElement.querySelector('.PriceTag_priceTag__1eb7mu92o');
             
-            console.log('Price text element found with selectors:', priceTextElement);
             
             // If still not found, search for elements containing the dollar sign
             if (!priceTextElement) {
-                console.log('Price text element not found with selectors, searching within price element...');
                 const allElements = priceElement.querySelectorAll('*');
                 for (const element of allElements) {
                     const text = element.textContent || element.innerText;
                     if (text && text.includes('$') && text.match(/\$\d+/)) {
                         priceTextElement = element;
-                        console.log('Found price text element:', element, text.trim());
                         break;
                     }
                 }
@@ -186,7 +180,6 @@
             popup.style.opacity = '0';
             popup.style.visibility = 'hidden';
             
-            console.log('Popup created and ready for positioning by scroll handler');
         } else {
             // Fallback to above model element
             popup.style.top = (rect.top + scrollTop - 100) + 'px';
@@ -253,13 +246,6 @@
                         const isOriginalPosition = priceRect.top > 0 && !currentPriceElement.classList.contains('_1vzft5e6');
                         const hasStickyVariant = currentPriceElement.querySelector('.PriceTag_card_variant_small__1eb7mu92');
                         
-                        console.log('Scroll detection:', {
-                            priceRectTop: priceRect.top,
-                            hasStickyClass: currentPriceElement.classList.contains('_1vzft5e6'),
-                            hasStickyVariant: !!hasStickyVariant,
-                            isOriginalPosition: isOriginalPosition,
-                            shouldShow: isOriginalPosition && !hasStickyVariant
-                        });
                         
                         if (isOriginalPosition && !hasStickyVariant) {
                             // Price box is in original position, show and reposition popup
@@ -274,12 +260,10 @@
                             // Update the stored reference
                             popup._priceElement = currentPriceElement;
                             
-                            console.log('Showing and repositioning popup');
                         } else {
                             // Price box has become sticky, hide popup
                             popup.style.opacity = '0';
                             popup.style.visibility = 'hidden';
-                            console.log('Hiding popup');
                         }
                         
                         lastScrollTop = currentScrollTop;
