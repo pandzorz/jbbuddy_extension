@@ -70,7 +70,7 @@
         popup.style.top = (rect.top + scrollTop - 100) + 'px'; // Much larger distance above
         popup.style.left = (rect.left + scrollLeft + rect.width / 2) + 'px';
         popup.style.transform = 'translateX(-50%)';
-        popup.style.zIndex = '10000';
+        popup.style.zIndex = '100'; // Lower z-index to appear below fixed navigation bars
     }
 
     // Function to find and process model elements
