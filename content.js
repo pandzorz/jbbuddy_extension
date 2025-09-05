@@ -93,18 +93,7 @@
                 document.body.appendChild(popup);
                 positionPopup(popup, modelElement);
                 
-                // Add hover effects
-                modelElement.addEventListener('mouseenter', function() {
-                    popup.style.opacity = '1';
-                    popup.style.visibility = 'visible';
-                });
-                
-                modelElement.addEventListener('mouseleave', function() {
-                    popup.style.opacity = '0';
-                    popup.style.visibility = 'hidden';
-                });
-                
-                // Show popup initially
+                // Show popup initially and keep it visible
                 popup.style.opacity = '1';
                 popup.style.visibility = 'visible';
             }
