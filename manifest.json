@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "JB Buddy Price Finder",
+  "version": "1.0",
+  "description": "Find better prices for JB Hi-Fi products using JB Buddy",
+  "permissions": [
+    "activeTab"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://www.jbhifi.com.au/*"],
+      "js": ["content.js"],
+      "css": ["popup.css"],
+      "run_at": "document_end"
+    }
+  ],
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
